@@ -1,0 +1,44 @@
+Server Side:
+
+RegisterNetEvent("es_roleplay:drag")
+AddEventHandler('es_roleplay:drag', function(pl)
+	Citizen.Trace('drag ' .. tostring(pl))
+	local ped = GetPlayerPed(GetPlayerFromServerId(pl))
+	local myped = GetPlayerPed(-1)
+	AttachEntityToEntity(myped, ped, 24818, 0.54, 0.54, 0.0, 0.0, 0.0, 0.0, false, false, false, true, 2, true)
+end)
+
+
+Client Side
+
+TriggerEvent('es:addCommand', 'drag', function(source, args, user)
+	if(player_jobs[user.identifier] or (tonumber(user.permission_level) > 2))then
+		local job = player_jobs[user.identifier]
+		if(job)then
+			job = player_jobs[user.identifier].job
+		end
+		if(groups.police[job] or tonumber(user.permission_level) > 2)then
+		end
+		if(#args < 2)then
+			TriggerClientEvent('chatMessage', source, "JOB", {255, 0, 0}, "Usage: ^2/drag (ID)")
+		else
+			if(GetPlayerName(tonumber(args[2])))then
+				TriggerEvent('es:getPlayerFromId', tonumber(args[2]), function(target)
+					if(get3DDistance(target.coords.x, target.coords.y, target.coords.z, user.coords.x, user.coords.y, user.coords.z) > 10.0)then
+						TriggerClientEvent('chatMessage', source, "JOB", {255, 0, 0}, "Please get closer to suspect.")
+						return
+					end
+					if (cuffed[target.identifier])then
+						TriggerClientEvent('es_roleplay:drag', -1, tonumber(args[2]))
+					else
+						TriggerClientEvent('chatMessage', source, "JOB", {255, 0, 0}, "Suspect is not cuffed.")
+					end
+				end)
+			else
+				TriggerClientEvent('chatMessage', source, "JOB", {255, 0, 0}, "Incorrect player ID")
+			end
+		end
+	else
+		TriggerClientEvent('chatMessage', source, "JOB", {255, 0, 0}, "You need to be police.")
+	end
+end)
